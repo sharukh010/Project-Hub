@@ -1,0 +1,177 @@
+const express = require('express');
+const { body, param } = require('express-validator');
+const Post = require('../models/post');
+const { authenticateToken, optionalAuth } = require('../middleware/auth');
+
+const router = express.Router();
+
+// Get all posts with optional filtering
+router.get('/', optionalAuth, async (req, res) => {
+  try {
+    const { page = 1, limit = 10, category, difficulty, search, tag } = req.query;
+    const skip = (page - 1) * limit;
+    
+    const query = { isPublished: true };
+    
+    if (category) query.category = category;
+    if (difficulty) query.difficulty = difficulty;
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } },
+        { tags: { $regex: search, $options: 'i' } }
+      ];
+    }
+    if (tag) query.tags = tag;
+
+    const posts = await Post.find(query)
+      .populate('author', 'username profile.avatar')
+      .select('-content -__v -updatedAt')
+      .sort({ createdAt: -1 })
+      .skip(parseInt(skip))
+      .limit(parseInt(limit));
+
+    const total = await Post.countDocuments(query);
+
+    res.json({
+      posts,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalPosts: total,
+        hasNext: page * limit < total,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Get posts error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get single post by ID or slug
+router.get('/:id', [
+  param('id').isMongoId().withMessage('Invalid post ID')
+], optionalAuth, async (req, res) => {
+  try {
+    const post = await Post.findOne({
+      $or: [
+        { _id: req.params.id },
+        { slug: req.params.id }
+      ]
+    })
+    .populate('author', 'username profile')
+    .populate('likes', 'username profile.avatar');
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Increment view count if user is authenticated
+    if (req.user) {
+      post.views += 1;
+      await post.save();
+    }
+
+    res.json({ post });
+  } catch (error) {
+    console.error('Get post error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Create new post
+router.post('/', authenticateToken, [
+  body('title').notEmpty().withMessage('Title is required'),
+  body('content').notEmpty().withMessage('Content is required'),
+  body('githubRepo').isURL().withMessage('Valid GitHub repo URL is required'),
+  body('difficulty').isIn(['Beginner', 'Intermediate', 'Advanced']).withMessage('Invalid difficulty level'),
+  body('category').isIn(['Web App', 'Mobile App', 'API', 'Desktop App', 'Game', 'CLI Tool', 'Library', 'Other'])
+    .withMessage('Invalid category')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { title, content, excerpt, githubRepo, liveDemo, tags, difficulty, category } = req.body;
+    
+    const post = new Post({
+      title,
+      content,
+      excerpt: excerpt || content.substring(0, 200) + '...',
+      githubRepo,
+      liveDemo: liveDemo || '',
+      tags: Array.isArray(tags) ? tags : [],
+      difficulty,
+      category,
+      author: req.user._id,
+      featuredImage: req.body.featuredImage || ''
+    });
+
+    await post.save();
+    res.status(201).json({ message: 'Post created successfully', post });
+  } catch (error) {
+    console.error('Create post error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update post
+router.put('/:id', authenticateToken, [
+  param('id').isMongoId().withMessage('Invalid post ID')
+], async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    if (post.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized to update this post' });
+    }
+
+    const { title, content, excerpt, githubRepo, liveDemo, tags, difficulty, category, featuredImage } = req.body;
+    
+    if (title) post.title = title;
+    if (content) post.content = content;
+    if (excerpt) post.excerpt = excerpt;
+    if (githubRepo) post.githubRepo = githubRepo;
+    if (liveDemo !== undefined) post.liveDemo = liveDemo;
+    if (tags) post.tags = Array.isArray(tags) ? tags : [];
+    if (difficulty) post.difficulty = difficulty;
+    if (category) post.category = category;
+    if (featuredImage !== undefined) post.featuredImage = featuredImage;
+
+    await post.save();
+    res.json({ message: 'Post updated successfully', post });
+  } catch (error) {
+    console.error('Update post error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete post
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    if (post.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized to delete this post' });
+    }
+
+    await Post.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('Delete post error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+module.exports = router;
