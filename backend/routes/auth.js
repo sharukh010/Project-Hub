@@ -198,6 +198,8 @@ router.get('/edit/:id', authenticateToken, async (req, res) => {
 });
 
 // Get trending tags
+
+module.exports = router;
 router.get('/stats/trending-tags', async (req, res) => {
   try {
     const trendingTags = await Post.aggregate([
