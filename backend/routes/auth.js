@@ -5,7 +5,6 @@ const User = require("../models/user");
 const Post = require("../models/post")
 const { authenticateToken } = require('../middleware/auth');
 
-console.log('authenticateToken:', authenticateToken);
 const router = express.Router();
 
 // Generate JWT token
@@ -200,8 +199,6 @@ router.get('/edit/:id', authenticateToken, async (req, res) => {
 });
 
 // Get trending tags
-
-module.exports = router;
 router.get('/stats/trending-tags', async (req, res) => {
   try {
     const trendingTags = await Post.aggregate([
