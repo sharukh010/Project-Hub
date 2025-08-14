@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { useMutation } from 'react-query'
+import { useMutation } from '@tanstack/react-query'
 import { Upload, X, Eye } from 'lucide-react'
 import { postsAPI, uploadAPI } from '../services/api'
 import Input from '../components/ui/Input'

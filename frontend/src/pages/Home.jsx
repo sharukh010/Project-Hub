@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, Code2, Users, BookOpen, Github } from 'lucide-react'
 import { postsAPI } from '../services/api'
 import PostCard from '../components/posts/PostCard'
@@ -115,7 +115,6 @@ function Home() {
           )}
         </div>
       </section>
-
       {/* Recent Projects */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,7 +123,7 @@ function Home() {
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Latest Projects
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-gray-600"> </p>
               </div>
             <Link to="/posts">
               <Button variant="outline">

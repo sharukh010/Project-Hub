@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useMutation } from 'react-query'
+import { useMutation } from '@tanstack/react-query'
 import { User, Mail, Globe, Github, Linkedin, Lock, Save } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { usersAPI, authAPI } from '../services/api'

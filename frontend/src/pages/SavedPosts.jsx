@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Bookmark, Search, Filter } from 'lucide-react'
 import { usersAPI } from '../services/api'
 import PostCard from '../components/posts/PostCard'
