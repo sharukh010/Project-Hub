@@ -165,3 +165,5 @@ module.exports = {
   authenticateToken,
   optionalAuth
 };
+
+module.exports = mongoose.models.Post || mongoose.model('Post', postSchema);
