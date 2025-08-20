@@ -34,14 +34,15 @@ function CreatePost() {
   const watchedContent = watch('content', '')
   const watchedTitle = watch('title', '')
 
-  const createPostMutation = useMutation(postsAPI.createPost, {
-    onSuccess: (data) => {
-      toast.success('Post created successfully!')
-      navigate(`/posts/${data.data.post.slug}`)
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.error || 'Failed to create post')
-    }
+  const createPostMutation = useMutation({
+  mutationFn: postsAPI.createPost,
+  onSuccess: (data) => {
+    toast.success('Post created successfully!')
+    navigate(`/posts/${data.data.post.slug}`)
+  },
+  onError: (error) => {
+    toast.error(error.response?.data?.error || 'Failed to create post')
+  }
   })
 
   const handleImageUpload = async (event) => {

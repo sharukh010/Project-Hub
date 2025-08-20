@@ -12,20 +12,22 @@ function PostCard({ post }) {
   const { isAuthenticated } = useAuth()
   const queryClient = useQueryClient()
 
-  const likeMutation = useMutation(postsAPI.likePost, {
+  const likeMutation = useMutation({
+    mutationFn: postsAPI.likePost,
     onSuccess: () => {
-      queryClient.invalidateQueries('posts')
-      queryClient.invalidateQueries(['post', post.slug])
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+      queryClient.invalidateQueries({ queryKey: ['post', post.slug] })
     },
     onError: (error) => {
       toast.error(error.response?.data?.error || 'Failed to update like')
     }
   })
 
-  const saveMutation = useMutation(usersAPI.savePost, {
+  const saveMutation = useMutation({
+    mutationFn: usersAPI.savePost,
     onSuccess: (data) => {
-      queryClient.invalidateQueries('posts')
-      queryClient.invalidateQueries('savedPosts')
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+      queryClient.invalidateQueries({ queryKey: ['savedPosts'] })
       toast.success(data.data.message)
     },
     onError: (error) => {

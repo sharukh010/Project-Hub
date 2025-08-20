@@ -84,6 +84,46 @@ router.put('/:id', authenticateToken, [
   }
 });
 
+// Get saved posts
+router.get('/saved/posts', authenticateToken, async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const user = await User.findById(req.user._id)
+      .populate({
+        path: 'savedPosts',
+        select: '-content -__v -updatedAt',
+        options: {
+          sort: { createdAt: -1 },
+          skip: parseInt(skip),
+          limit: parseInt(limit)
+        },
+        populate: {
+          path: 'author',
+          select: 'username profile.avatar'
+        }
+      });
+
+    const total = user.savedPosts.length;
+
+    res.json({
+      posts: user.savedPosts,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalPosts: total,
+        hasNext: page * limit < total,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Get saved posts error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 // Get user's posts
 router.get('/:id/posts', [
   param('id').isMongoId().withMessage('Invalid user ID')
@@ -145,43 +185,5 @@ router.post('/save-post/:postId', authenticateToken, async (req, res) => {
   }
 });
 
-// Get saved posts
-router.get('/saved/posts', authenticateToken, async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-    const skip = (page - 1) * limit;
-
-    const user = await User.findById(req.user._id)
-      .populate({
-        path: 'savedPosts',
-        select: '-content -__v -updatedAt',
-        options: {
-          sort: { createdAt: -1 },
-          skip: parseInt(skip),
-          limit: parseInt(limit)
-        },
-        populate: {
-          path: 'author',
-          select: 'username profile.avatar'
-        }
-      });
-
-    const total = user.savedPosts.length;
-
-    res.json({
-      posts: user.savedPosts,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalPosts: total,
-        hasNext: page * limit < total,
-        hasPrev: page > 1
-      }
-    });
-  } catch (error) {
-    console.error('Get saved posts error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
 
 module.exports = router;

@@ -50,35 +50,29 @@ router.get('/', optionalAuth, async (req, res) => {
 });
 
 // Get single post by ID or slug
-router.get('/:id', [
-  param('id').isMongoId().withMessage('Invalid post ID')
-], optionalAuth, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const post = await Post.findOne({
-      $or: [
-        { _id: req.params.id },
-        { slug: req.params.id }
-      ]
-    })
-    .populate('author', 'username profile')
-    .populate('likes', 'username profile.avatar');
+    const { id } = req.params
+    let post
+
+    // If id is a valid ObjectId, search by _id
+    if (/^[0-9a-fA-F]{24}$/.test(id)) {
+      post = await Post.findById(id)
+    }
+    // Otherwise, treat as slug
+    if (!post) {
+      post = await Post.findOne({ slug: id })
+    }
 
     if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
+      return res.status(404).json({ error: 'Post not found' })
     }
 
-    // Increment view count if user is authenticated
-    if (req.user) {
-      post.views += 1;
-      await post.save();
-    }
-
-    res.json({ post });
+    res.json({ post })
   } catch (error) {
-    console.error('Get post error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error' })
   }
-});
+})
 
 // Create new post
 router.post('/', authenticateToken, [

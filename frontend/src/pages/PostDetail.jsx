@@ -1,4 +1,3 @@
-// src/pages/PostDetail.jsx
 import React, { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -33,31 +32,31 @@ function PostDetail() {
   const queryClient = useQueryClient()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  const { data, isLoading, error } = useQuery(
-    ['post', slug],
-    () => postsAPI.getPost(slug),
-    {
-      retry: false,
-      onError: (err) => {
-        if (err.response?.status === 404) {
-          navigate('/posts')
-        }
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['post', slug],
+    queryFn: () => postsAPI.getPost(slug),
+    retry: false,
+    onError: (err) => {
+      if (err.response?.status === 404) {
+        navigate('/posts')
       }
     }
-  )
+  })
 
-  const likeMutation = useMutation(postsAPI.likePost, {
+  const likeMutation = useMutation({
+    mutationFn: postsAPI.likePost,
     onSuccess: () => {
-      queryClient.invalidateQueries(['post', slug])
+      queryClient.invalidateQueries({ queryKey: ['post', slug] })
     },
     onError: (error) => {
       toast.error(error.response?.data?.error || 'Failed to update like')
     }
   })
 
-  const saveMutation = useMutation(usersAPI.savePost, {
+  const saveMutation = useMutation({
+    mutationFn: usersAPI.savePost,
     onSuccess: (data) => {
-      queryClient.invalidateQueries(['post', slug])
+      queryClient.invalidateQueries({ queryKey: ['post', slug] })
       toast.success(data.data.message)
     },
     onError: (error) => {
@@ -65,7 +64,8 @@ function PostDetail() {
     }
   })
 
-  const deleteMutation = useMutation(postsAPI.deletePost, {
+  const deleteMutation = useMutation({
+    mutationFn: postsAPI.deletePost,
     onSuccess: () => {
       toast.success('Post deleted successfully')
       navigate('/dashboard')
@@ -240,12 +240,16 @@ function PostDetail() {
             <Link to={`/users/${post.author.username}`} className="flex items-center space-x-3">
               <div className="h-12 w-12 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-lg">
-                  {post.author.username.charAt(0).toUpperCase()}
+                  {post.author?.username ? post.author.username.charAt(0).toUpperCase() : "?"}
                 </span>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">{post.author.username}</h3>
-                <p className="text-sm text-gray-600">{post.author.profile.experience} Developer</p>
+                <p className="text-sm text-gray-600">
+  {post.author?.profile?.experience
+    ? `${post.author.profile.experience} Developer`
+    : "Developer"}
+</p>
               </div>
             </Link>
           </div>
