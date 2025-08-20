@@ -60,7 +60,7 @@ export const usersAPI = {
   getUserProfile: (username) => api.get(`/users/${username}`),
   updateProfile: (profileData) => api.put('/users/profile', { profile: profileData }),
   savePost: (postId) => api.post(`/users/save-post/${postId}`),
-  getSavedPosts: () => api.get('/users/saved-posts'),
+  getSavedPosts: () => api.get('/users/saved/posts'),
 }
 
 // Upload API

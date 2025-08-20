@@ -168,4 +168,47 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+router.get('/user/my-posts', authenticateToken, async (req, res) => {
+  try {
+    const { page = 1, limit = 6 } = req.query
+    const posts = await Post.find({ author: req.user._id })
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 })
+
+    const totalPosts = await Post.countDocuments({ author: req.user._id })
+    res.json({
+      posts,
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(totalPosts / limit),
+        totalPosts
+      }
+    })
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+
+router.post('/:id/like', authenticateToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+    if (!post) return res.status(404).json({ error: 'Post not found' })
+
+    // Like/unlike logic here
+    // Example:
+    if (!post.likes.includes(req.user._id)) {
+      post.likes.push(req.user._id)
+    } else {
+      post.likes = post.likes.filter(id => id.toString() !== req.user._id.toString())
+    }
+    await post.save()
+
+    res.json({ message: 'Like updated', post })
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 module.exports = router;
