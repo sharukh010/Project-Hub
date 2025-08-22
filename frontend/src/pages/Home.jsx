@@ -214,7 +214,7 @@ import { postsAPI } from '../services/api'
 function Home() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['posts'],
-    queryFn: postsAPI.getAll, // Make sure this function exists and fetches posts
+    queryFn:postsAPI.getPosts, // Make sure this function exists and fetches posts
   })
 
   if (isLoading) return <div>Loading...</div>
