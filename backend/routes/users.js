@@ -1,158 +1,211 @@
+// // routes/users.js
+// const express = require('express');
+// const User = require('../models/user');
+// const Post = require('../models/post');
+// const { authenticateToken, optionalAuth } = require('../middleware/auth');
+
+// const router = express.Router();
+
+// // ✅ FIXED: Get user profile by username
+// router.get('/:username', optionalAuth, async (req, res) => {
+//   try {
+//     // Find user by username field, not _id
+//     const user = await User.findOne({ username: req.params.username })
+//       .select('-email -savedPosts');
+    
+//     if (!user) {
+//       return res.status(404).json({ error: 'User not found' });
+//     }
+
+//     // Get user's posts
+//     const posts = await Post.find({ 
+//       author: user._id, 
+//       isPublished: true 
+//     })
+//     .select('title slug excerpt featuredImage tags difficulty category likes views createdAt readTime')
+//     .sort({ createdAt: -1 });
+
+//     // Add like status if user is authenticated
+//     const postsWithLikeStatus = posts.map(post => {
+//       const postObj = post.toObject();
+//       postObj.likesCount = post.likes.length;
+//       postObj.isLiked = req.user ? post.likes.includes(req.user._id) : false;
+//       delete postObj.likes;
+//       return postObj;
+//     });
+
+//     res.json({
+//       user,
+//       posts: postsWithLikeStatus,
+//       totalPosts: posts.length
+//     });
+
+//   } catch (error) {
+//     console.error('Get user profile error:', error);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
+
+// // Update user profile (authenticated)
+// router.put('/profile', authenticateToken, async (req, res) => {
+//   try {
+//     const { profile } = req.body;
+    
+//     const user = await User.findByIdAndUpdate(
+//       req.user._id,
+//       { 
+//         $set: {
+//           'profile.bio': profile.bio || '',
+//           'profile.skills': profile.skills || [],
+//           'profile.experience': profile.experience || 'Beginner',
+//           'profile.github': profile.github || '',
+//           'profile.linkedin': profile.linkedin || '',
+//           'profile.website': profile.website || '',
+//           'profile.avatar': profile.avatar || ''
+//         }
+//       },
+//       { new: true, runValidators: true }
+//     ).select('-password');
+
+//     res.json({
+//       message: 'Profile updated successfully',
+//       user
+//     });
+
+//   } catch (error) {
+//     console.error('Profile update error:', error);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
+
+// // Save/unsave post
+// router.post('/save-post/:postId', authenticateToken, async (req, res) => {
+//   try {
+//     const { postId } = req.params;
+//     const user = await User.findById(req.user._id);
+
+//     const post = await Post.findById(postId);
+//     if (!post) {
+//       return res.status(404).json({ error: 'Post not found' });
+//     }
+
+//     const isAlreadySaved = user.savedPosts.includes(postId);
+
+//     if (isAlreadySaved) {
+//       user.savedPosts = user.savedPosts.filter(id => id.toString() !== postId);
+//       await user.save();
+//       return res.json({ message: 'Post removed from saved', saved: false });
+//     } else {
+//       user.savedPosts.push(postId);
+//       await user.save();
+//       return res.json({ message: 'Post saved successfully', saved: true });
+//     }
+
+//   } catch (error) {
+//     console.error('Save post error:', error);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
+
+// // Get saved posts
+// router.get('/saved-posts', authenticateToken, async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user._id)
+//       .populate({
+//         path: 'savedPosts',
+//         select: 'title slug excerpt featuredImage tags difficulty category author createdAt readTime',
+//         populate: {
+//           path: 'author',
+//           select: 'username profile.avatar'
+//         }
+//       });
+
+//     res.json({ savedPosts: user.savedPosts });
+
+//   } catch (error) {
+//     console.error('Get saved posts error:', error);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
+
+// module.exports = router;
+
+// routes/users.js
 const express = require('express');
-const { param, body } = require('express-validator');
 const User = require('../models/user');
 const Post = require('../models/post');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get user profile
-router.get('/:id', [
-  param('id').isMongoId().withMessage('Invalid user ID')
-], async (req, res) => {
+// ✅ FIXED: Get user profile by username
+router.get('/:username', optionalAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
-      .select('-password -__v -updatedAt -savedPosts');
+    // Find user by username field, not _id
+    const user = await User.findOne({ username: req.params.username })
+      .select('-email -savedPosts');
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ user });
+    // Get user's posts
+    const posts = await Post.find({ 
+      author: user._id, 
+      isPublished: true 
+    })
+    .select('title slug excerpt featuredImage tags difficulty category likes views createdAt readTime')
+    .sort({ createdAt: -1 });
+
+    // Add like status if user is authenticated
+    const postsWithLikeStatus = posts.map(post => {
+      const postObj = post.toObject();
+      postObj.likesCount = post.likes.length;
+      postObj.isLiked = req.user ? post.likes.includes(req.user._id) : false;
+      delete postObj.likes;
+      return postObj;
+    });
+
+    res.json({
+      user,
+      posts: postsWithLikeStatus,
+      totalPosts: posts.length
+    });
+
   } catch (error) {
-    console.error('Get user error:', error);
+    console.error('Get user profile error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Update user profile
-router.put('/:id', authenticateToken, [
-  param('id').isMongoId().withMessage('Invalid user ID'),
-  body('username').optional().isLength({ min: 3, max: 30 }),
-  body('email').optional().isEmail(),
-  body('profile.bio').optional().isLength({ max: 500 }),
-  body('profile.skills').optional().isArray(),
-  body('profile.experience').optional().isIn(['Beginner', 'Intermediate', 'Advanced']),
-  body('profile.github').optional().isURL(),
-  body('profile.linkedin').optional().isURL(),
-  body('profile.website').optional().isURL()
-], async (req, res) => {
+// Update user profile (authenticated)
+router.put('/profile', authenticateToken, async (req, res) => {
   try {
-    if (req.params.id !== req.user._id.toString()) {
-      return res.status(403).json({ error: 'Not authorized to update this profile' });
-    }
-
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const { username, email, profile } = req.body;
-
-    // Check if username or email already exists
-    if (username && username !== user.username) {
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        return res.status(400).json({ error: 'Username already taken' });
-      }
-      user.username = username;
-    }
-
-    if (email && email !== user.email) {
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
-        return res.status(400).json({ error: 'Email already registered' });
-      }
-      user.email = email;
-    }
-
-    // Update profile fields if provided
-    if (profile) {
-      user.profile = { ...user.profile.toObject(), ...profile };
-    }
-
-    await user.save();
+    const { profile } = req.body;
     
-    // Remove sensitive data before sending response
-    const userObj = user.toObject();
-    delete userObj.password;
-    
-    res.json({ message: 'Profile updated successfully', user: userObj });
-  } catch (error) {
-    console.error('Update user error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Get saved posts
-router.get('/saved/posts', authenticateToken, async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-    const skip = (page - 1) * limit;
-
-    const user = await User.findById(req.user._id)
-      .populate({
-        path: 'savedPosts',
-        select: '-content -__v -updatedAt',
-        options: {
-          sort: { createdAt: -1 },
-          skip: parseInt(skip),
-          limit: parseInt(limit)
-        },
-        populate: {
-          path: 'author',
-          select: 'username profile.avatar'
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { 
+        $set: {
+          'profile.bio': profile.bio || '',
+          'profile.skills': profile.skills || [],
+          'profile.experience': profile.experience || 'Beginner',
+          'profile.github': profile.github || '',
+          'profile.linkedin': profile.linkedin || '',
+          'profile.website': profile.website || '',
+          'profile.avatar': profile.avatar || ''
         }
-      });
-
-    const total = user.savedPosts.length;
-
-    res.json({
-      posts: user.savedPosts,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalPosts: total,
-        hasNext: page * limit < total,
-        hasPrev: page > 1
-      }
-    });
-  } catch (error) {
-    console.error('Get saved posts error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-
-// Get user's posts
-router.get('/:id/posts', [
-  param('id').isMongoId().withMessage('Invalid user ID')
-], async (req, res) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-    const skip = (page - 1) * limit;
-
-    const posts = await Post.find({ author: req.params.id, isPublished: true })
-      .populate('author', 'username profile.avatar')
-      .select('-content -__v -updatedAt')
-      .sort({ createdAt: -1 })
-      .skip(parseInt(skip))
-      .limit(parseInt(limit));
-
-    const total = await Post.countDocuments({ author: req.params.id, isPublished: true });
+      },
+      { new: true, runValidators: true }
+    ).select('-password');
 
     res.json({
-      posts,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalPosts: total,
-        hasNext: page * limit < total,
-        hasPrev: page > 1
-      }
+      message: 'Profile updated successfully',
+      user
     });
+
   } catch (error) {
-    console.error('Get user posts error:', error);
+    console.error('Profile update error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -160,30 +213,51 @@ router.get('/:id/posts', [
 // Save/unsave post
 router.post('/save-post/:postId', authenticateToken, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.postId);
+    const { postId } = req.params;
+    const user = await User.findById(req.user._id);
+
+    const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    const user = await User.findById(req.user._id);
-    const postIndex = user.savedPosts.indexOf(post._id);
-    
-    if (postIndex === -1) {
-      // Save post
-      user.savedPosts.push(post._id);
+    const isAlreadySaved = user.savedPosts.includes(postId);
+
+    if (isAlreadySaved) {
+      user.savedPosts = user.savedPosts.filter(id => id.toString() !== postId);
       await user.save();
-      res.json({ message: 'Post saved successfully', saved: true });
+      return res.json({ message: 'Post removed from saved', saved: false });
     } else {
-      // Unsave post
-      user.savedPosts.splice(postIndex, 1);
+      user.savedPosts.push(postId);
       await user.save();
-      res.json({ message: 'Post unsaved successfully', saved: false });
+      return res.json({ message: 'Post saved successfully', saved: true });
     }
+
   } catch (error) {
     console.error('Save post error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
+// Get saved posts
+router.get('/saved-posts', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .populate({
+        path: 'savedPosts',
+        select: 'title slug excerpt featuredImage tags difficulty category author createdAt readTime',
+        populate: {
+          path: 'author',
+          select: 'username profile.avatar'
+        }
+      });
+
+    res.json({ savedPosts: user.savedPosts });
+
+  } catch (error) {
+    console.error('Get saved posts error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 module.exports = router;

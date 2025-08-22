@@ -20,13 +20,12 @@ import Button from '../components/ui/Button'
 function UserProfile() {
   const { username } = useParams()
 
-  const { data, isLoading, error } = useQuery(
-    ['userProfile', username],
-    () => usersAPI.getUserProfile(username),
-    {
-      retry: false
-    }
-  )
+  // ✅ FIXED: Updated to React Query v5 object syntax
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['userProfile', username],
+    queryFn: () => usersAPI.getUserProfile(username),
+    retry: false
+  })
 
   if (isLoading) {
     return (

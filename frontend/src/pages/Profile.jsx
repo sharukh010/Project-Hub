@@ -30,7 +30,9 @@ function Profile() {
   // Password form
   const passwordForm = useForm()
 
-  const updateProfileMutation = useMutation(usersAPI.updateProfile, {
+  // ✅ CORRECT v5 syntax - using object configuration
+  const updateProfileMutation = useMutation({
+    mutationFn: usersAPI.updateProfile,
     onSuccess: (data) => {
       updateUser(data.data.user)
       toast.success('Profile updated successfully!')
@@ -40,7 +42,8 @@ function Profile() {
     }
   })
 
-  const updatePasswordMutation = useMutation(authAPI.updatePassword, {
+  const updatePasswordMutation = useMutation({
+    mutationFn: (passwordData) => authAPI.updatePassword(passwordData.currentPassword, passwordData.newPassword),
     onSuccess: () => {
       toast.success('Password updated successfully!')
       setShowPasswordModal(false)
@@ -210,8 +213,8 @@ function Profile() {
                 <div className="flex justify-end">
                   <Button
                     type="submit"
-                    loading={updateProfileMutation.isLoading}
-                    disabled={updateProfileMutation.isLoading}
+                    loading={updateProfileMutation.isPending}
+                    disabled={updateProfileMutation.isPending}
                   >
                     <Save className="h-4 w-4 mr-2" />
                     Save Changes
@@ -308,8 +311,8 @@ function Profile() {
               </Button>
               <Button
                 type="submit"
-                loading={updatePasswordMutation.isLoading}
-                disabled={updatePasswordMutation.isLoading}
+                loading={updatePasswordMutation.isPending}
+                disabled={updatePasswordMutation.isPending}
               >
                 Update Password
               </Button>
