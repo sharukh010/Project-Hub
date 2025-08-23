@@ -37,11 +37,12 @@ function PostCard({ post }) {
 
   const handleLike = (e) => {
     e.preventDefault()
+    console.log('Like clicked')
     if (!isAuthenticated) {
       toast.error('Please login to like posts')
       return
     }
-    likeMutation.mutate(post._id)
+    likeMutation.mutateAsync(post._id)
   }
 
   const handleSave = (e) => {

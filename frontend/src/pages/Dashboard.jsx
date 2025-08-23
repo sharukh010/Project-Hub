@@ -1,11 +1,10 @@
-// src/pages/Dashboard.jsx
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Plus, Eye, Heart, BookOpen, TrendingUp } from 'lucide-react'
 import { postsAPI } from '../services/api'
 import { useAuth } from '../contexts/AuthContext'
-import DashboardPostCard from '../components/posts/DashboardPostCard' // Updated import
+import DashboardPostCard from '../components/posts/DashboardPostCard' 
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import Button from '../components/ui/Button'
 import Pagination from '../components/posts/Pagination'
@@ -73,7 +72,7 @@ function Dashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Posts</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalPosts}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalPosts || 0}</p>
                 </div>
               </div>
             </div>
@@ -97,7 +96,7 @@ function Dashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Likes</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalLikes}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalLikes || 0}</p>
                 </div>
               </div>
             </div>

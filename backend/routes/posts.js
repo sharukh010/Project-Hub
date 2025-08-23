@@ -302,15 +302,28 @@ router.post('/:id/like', authenticateToken, async (req, res) => {
     if (!post) return res.status(404).json({ error: 'Post not found' })
 
     // Like/unlike logic here
+    const userId = req.user._id
+    const hasLiked = post.likes.some(id => id.toString() === userId.toString())
     // Example:
-    if (!post.likes.includes(req.user._id)) {
-      post.likes.push(req.user._id)
+    if (hasLiked) {
+      // Unlike - remove user from likes array
+      post.likes = post.likes.filter(id => id.toString() !== userId.toString())
     } else {
-      post.likes = post.likes.filter(id => id.toString() !== req.user._id.toString())
+      // Like - add user to likes array
+      post.likes.push(userId)
     }
+
+    // Update the likesCount field
+    post.likesCount = post.likes.length
+    
     await post.save()
 
-    res.json({ message: 'Like updated', post })
+    res.json({ 
+      message: 'Like updated',
+      isLiked: !hasLiked,
+      likesCount: post.likesCount,
+      post
+    })
   } catch (error) {
     res.status(500).json({ error: 'Server error' })
   }

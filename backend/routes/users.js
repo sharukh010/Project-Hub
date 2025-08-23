@@ -138,7 +138,7 @@ const { authenticateToken, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// ✅ FIXED: Get user profile by username
+//  FIXED: Get user profile by username
 router.get('/:username', optionalAuth, async (req, res) => {
   try {
     // Find user by username field, not _id
@@ -240,7 +240,7 @@ router.post('/save-post/:postId', authenticateToken, async (req, res) => {
 });
 
 // Get saved posts
-router.get('/saved-posts', authenticateToken, async (req, res) => {
+router.get('/saved/posts', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
       .populate({
