@@ -49,7 +49,7 @@ function Navbar() {
           </Link>
 
           {/* Search Bar (Desktop) */}
-          <div className="hidden md:flex flex-1 max-w-lg mx-8">
+          {/* <div className="hidden md:flex flex-1 max-w-lg mx-8">
             <form onSubmit={handleSearch} className="w-full">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -62,7 +62,7 @@ function Navbar() {
                 />
               </div>
             </form>
-          </div>
+          </div> */}
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
