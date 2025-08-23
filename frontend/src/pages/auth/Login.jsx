@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Code2 } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
+import  useAuth  from '../../contexts/AuthContext'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
 
