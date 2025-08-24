@@ -131,6 +131,8 @@ function PostDetail() {
   const relatedPosts = data.data.relatedPosts
   const isAuthor = user?._id === post.author._id
 
+  console.log(post)
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}

@@ -172,7 +172,8 @@ router.get('/:id', async (req, res) => {
     if (!post) {
       return res.status(404).json({ error: 'Post not found' })
     }
-
+    post.views = post.views + 1 
+    post.save()
     res.json({ post })
   } catch (error) {
     res.status(500).json({ error: 'Server error' })
