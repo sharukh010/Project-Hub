@@ -62,6 +62,14 @@ const postSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  isLiked:{
+    type: Boolean,
+    default: false
+  },
+  likesCount:{
+    type: Number,
+    default:0
+  },
   views: {
     type: Number,
     default: 0

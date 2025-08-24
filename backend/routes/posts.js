@@ -162,11 +162,11 @@ router.get('/:id', async (req, res) => {
 
     // If id is a valid ObjectId, search by _id
     if (/^[0-9a-fA-F]{24}$/.test(id)) {
-      post = await Post.findById(id)
+      post = await Post.findById(id).populate('author')
     }
     // Otherwise, treat as slug
     if (!post) {
-      post = await Post.findOne({ slug: id })
+      post = await Post.findOne({ slug: id }).populate('author')
     }
 
     if (!post) {
@@ -313,6 +313,7 @@ router.post('/:id/like', authenticateToken, async (req, res) => {
       // Like - add user to likes array
       post.likes.push(userId)
     }
+    post.isLiked = !post.isLiked
 
     // Update the likesCount field
     post.likesCount = post.likes.length

@@ -63,6 +63,7 @@ function PostCard({ post }) {
     }
   }
 
+  console.log(post)
   return (
     <article className="card hover:shadow-md transition-shadow duration-200">
       {post.featuredImage && (
