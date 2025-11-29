@@ -130,14 +130,15 @@ function PostCard({ post }) {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Link to={`/users/${post.author.username}`} className="flex items-center space-x-2 hover:opacity-80">
+            <Link to={`/users/${post.author?.username}`} className="flex items-center space-x-2 hover:opacity-80">
               <div className="h-8 w-8 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
-                  {post.author.username.charAt(0).toUpperCase()}
+                  {post.author?.username.charAt(0).toUpperCase()}
                 </span>
               </div>
               <span className="text-sm font-medium text-gray-900">
-                {post.author.username}
+                {post.author?.username || "Tom"}
+                
               </span>
             </Link>
           </div>
