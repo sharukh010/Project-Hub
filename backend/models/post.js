@@ -126,7 +126,7 @@ module.exports = mongoose.model('Post', postSchema);
 
 // middleware/auth.js
 const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+const User = require('./User');
 
 const authenticateToken = async (req, res, next) => {
   try {

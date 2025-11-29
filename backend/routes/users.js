@@ -132,8 +132,8 @@
 
 // routes/users.js
 const express = require('express');
-const User = require('../models/user');
-const Post = require('../models/post');
+const User = require('../models/User');
+const Post = require('../models/Post');
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
